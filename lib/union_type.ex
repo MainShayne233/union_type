@@ -1,31 +1,31 @@
-defmodule TypedTuple do
-  @keys [:module, :name, :values]
+defmodule UnionType do
+  @enforce_keys [:module, :name, :values]
 
-  defstruct @keys
+  defstruct @enforce_keys
 
   defimpl Inspect, for: __MODULE__ do
-    def inspect(typed_tuple, _opts) do
+    def inspect(union_type, _opts) do
       module =
-        typed_tuple.module
+        union_type.module
         |> Module.split()
         |> Enum.join(".")
 
       args =
-        typed_tuple.values
+        union_type.values
         |> Tuple.to_list()
         |> Enum.map_join(", ", &inspect/1)
 
-      "#{module}.#{typed_tuple.name}(#{args})"
+      "#{module}.#{union_type.name}(#{args})"
     end
   end
 
   defmacro __using__(_options) do
     quote do
-      import TypedTuple, only: [deftuple: 1]
+      import UnionType, only: [union_type: 1]
     end
   end
 
-  defmacro deftuple(do: {:__block__, _, variants}) do
+  defmacro union_type(do: {:__block__, _, variants}) do
     Enum.map(variants, &generate_variant(&1, __CALLER__.module))
   end
 
@@ -56,23 +56,23 @@ defmodule TypedTuple do
               false
           end)
 
+        match_vars = Enum.map(binding(), &elem(&1, 1))
         if is_match_expression? do
-          match_vars = Enum.map(binding(), &elem(&1, 1))
           name = unquote(name)
           caller = unquote(caller)
 
           quote do
-            %TypedTuple{
+            %UnionType{
               module: unquote(caller),
               name: unquote(name),
               values: {unquote_splicing(match_vars)}
             }
           end
         else
-          Macro.escape(%TypedTuple{
+          Macro.escape(%UnionType{
             module: unquote(caller),
             name: unquote(name),
-            values: binding() |> Enum.map(&elem(&1, 1)) |> List.to_tuple()
+            values: List.to_tuple(match_vars)
           })
         end
       end

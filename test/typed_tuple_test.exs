@@ -1,8 +1,8 @@
-defmodule TypedTupleTest do
+defmodule UnionTypeTest do
   use ExUnit.Case
-  doctest TypedTuple
+  doctest UnionType
 
   test "greets the world" do
-    assert TypedTuple.hello() == :world
+    assert UnionType.hello() == :world
   end
 end
