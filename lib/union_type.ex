@@ -3,22 +3,6 @@ defmodule UnionType do
 
   defstruct @enforce_keys
 
-  defimpl Inspect, for: __MODULE__ do
-    def inspect(union_type, _opts) do
-      module =
-        union_type.module
-        |> Module.split()
-        |> Enum.join(".")
-
-      args =
-        union_type.values
-        |> Tuple.to_list()
-        |> Enum.map_join(", ", &inspect/1)
-
-      "#{module}.#{union_type.name}(#{args})"
-    end
-  end
-
   defmacro __using__(_options) do
     quote do
       import UnionType, only: [union_type: 1]
@@ -77,6 +61,28 @@ defmodule UnionType do
           })
         end
       end
+    end
+  end
+
+  defimpl String.Chars do
+    def to_string(union_type) do
+      module =
+        union_type.module
+        |> Module.split()
+        |> Enum.join(".")
+
+      args =
+        union_type.values
+        |> Tuple.to_list()
+        |> Enum.map_join(", ", &inspect/1)
+
+      "#{module}.#{union_type.name}(#{args})"
+    end
+  end
+
+  defimpl Inspect do
+    def inspect(union_type, _opts) do
+      to_string(union_type)
     end
   end
 end
