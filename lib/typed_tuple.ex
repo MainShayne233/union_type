@@ -1,23 +1,23 @@
 defmodule TypedTuple do
-  @enforce_keys [:module, :name, :values]
+  @keys [:module, :name, :values]
 
-  defstruct @enforce_keys
+  defstruct @keys
 
-  # defimpl Inspect, for: __MODULE__ do
-  #   def inspect(typed_tuple, _opts) do
-  #     module =
-  #       typed_tuple.module
-  #       |> Module.split()
-  #       |> Enum.join(".")
+  defimpl Inspect, for: __MODULE__ do
+    def inspect(typed_tuple, _opts) do
+      module =
+        typed_tuple.module
+        |> Module.split()
+        |> Enum.join(".")
 
-  #     args =
-  #       typed_tuple.values
-  #       |> Tuple.to_list()
-  #       |> Enum.map_join(", ", &inspect/1)
+      args =
+        typed_tuple.values
+        |> Tuple.to_list()
+        |> Enum.map_join(", ", &inspect/1)
 
-  #     "#{module}.#{typed_tuple.name}(#{args})"
-  #   end
-  # end
+      "#{module}.#{typed_tuple.name}(#{args})"
+    end
+  end
 
   defmacro __using__(_options) do
     quote do
@@ -44,35 +44,35 @@ defmodule TypedTuple do
     end
   end
 
-  defp generate_function({name, _, args}, caller) do
-    params = generate_params(args)
-    match_vars = generate_match_vars(args)
-
+  defp generate_function({name, _, args} = ast, caller) do
     quote do
-      defmacro unquote(name)(unquote_splicing(params)) do
-        Macro.escape({unquote(name), unquote_splicing(params)})
-        # Macro.escape(%TypedTuple{
-        #   module: unquote(caller),
-        #   name: unquote(name),
-        #   values: {unquote_splicing(params)}
-        # })
+      defmacro unquote(name)(unquote_splicing(args)) do
+        IO.inspect(binding())
+        Macro.escape(%TypedTuple{
+          module: unquote(caller),
+          name: unquote(name),
+          values: binding() |> Enum.map(&elem(&1, 1)) |> List.to_tuple()
+        })
       end
 
-      defmacro unquote(:"match__#{name}")(arg1) do
-        {:value, arg1}
-        # Macro.escape(%TypedTuple{
-        #   module: unquote(caller),
-        #   name: unquote(name),
-        #   values: {unquote_splicing(params)}
-        # })
-      end
+      unquote(generate_match_function(ast, caller))
     end
   end
 
-  defp generate_match_vars(params) do
-    Enum.map(params, fn {name, _, _} ->
-      {name, [], Elixir}
-    end)
+  defp generate_match_function({name, _, args}, caller) do
+    macro_name = String.to_atom("match_#{name}")
+
+    quote do
+      defmacro unquote(macro_name)(unquote_splicing(args)) do
+        match_vars = Enum.map(binding(), &elem(&1, 1))
+        name = unquote(name)
+        caller = unquote(caller)
+
+        quote do
+          %TypedTuple{module: unquote(caller), name: unquote(name), values: {unquote_splicing(match_vars)}}
+        end
+      end
+    end
   end
 
   defp generate_params(params) do
