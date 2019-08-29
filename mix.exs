@@ -7,7 +7,18 @@ defmodule UnionType.MixProject do
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      description: "A library for defining and using union types",
+      licenses: ["MIT"],
+      package: package()
+    ]
+  end
+
+  defp package do
+    [
+      maintainers: ["MainShayne233"],
+      licenses: ["Apache 2.0"],
+      links: %{"GitHub" => "https://github.com/MainShayne233/union_type"}
     ]
   end
 
@@ -20,7 +31,6 @@ defmodule UnionType.MixProject do
 
   # Run "mix help deps" to learn about dependencies.
   defp deps do
-    [
-    ]
+    []
   end
 end

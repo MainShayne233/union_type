@@ -57,6 +57,7 @@ defmodule UnionType do
           end)
 
         match_vars = Enum.map(binding(), &elem(&1, 1))
+
         if is_match_expression? do
           name = unquote(name)
           caller = unquote(caller)
