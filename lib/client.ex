@@ -12,19 +12,19 @@ end
 defmodule Client do
   require ClientEnum
 
-  def greet(ClientEnum.match_guest()) do
+  def greet(ClientEnum.guest()) do
     IO.puts("howdy guest!")
   end
 
-  def greet(ClientEnum.match_user(name)) do
+  def greet(ClientEnum.user(name)) do
     IO.puts("howdy #{name}!")
   end
 
-  def greet(ClientEnum.match_criminal(crime)) do
+  def greet(ClientEnum.criminal(crime)) do
     IO.puts("You commited: #{crime}. Get out of here!")
   end
 
-  def greet(ClientEnum.match_admin(name, role)) do
+  def greet(ClientEnum.admin(name, role)) do
     IO.puts("howdy #{name}! you are a #{role}")
   end
 

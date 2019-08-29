@@ -44,42 +44,38 @@ defmodule TypedTuple do
     end
   end
 
-  defp generate_function({name, _, args} = ast, caller) do
+  defp generate_function({name, _, args}, caller) do
     quote do
       defmacro unquote(name)(unquote_splicing(args)) do
-        IO.inspect(binding())
-        Macro.escape(%TypedTuple{
-          module: unquote(caller),
-          name: unquote(name),
-          values: binding() |> Enum.map(&elem(&1, 1)) |> List.to_tuple()
-        })
-      end
+        is_match_expression? =
+          Enum.all?(binding(), fn
+            {name, {value, _, nil}} when is_atom(name) and is_atom(value) ->
+              true
 
-      unquote(generate_match_function(ast, caller))
-    end
-  end
+            _other ->
+              false
+          end)
 
-  defp generate_match_function({name, _, args}, caller) do
-    macro_name = String.to_atom("match_#{name}")
+        if is_match_expression? do
+          match_vars = Enum.map(binding(), &elem(&1, 1))
+          name = unquote(name)
+          caller = unquote(caller)
 
-    quote do
-      defmacro unquote(macro_name)(unquote_splicing(args)) do
-        match_vars = Enum.map(binding(), &elem(&1, 1))
-        name = unquote(name)
-        caller = unquote(caller)
-
-        quote do
-          %TypedTuple{module: unquote(caller), name: unquote(name), values: {unquote_splicing(match_vars)}}
+          quote do
+            %TypedTuple{
+              module: unquote(caller),
+              name: unquote(name),
+              values: {unquote_splicing(match_vars)}
+            }
+          end
+        else
+          Macro.escape(%TypedTuple{
+            module: unquote(caller),
+            name: unquote(name),
+            values: binding() |> Enum.map(&elem(&1, 1)) |> List.to_tuple()
+          })
         end
       end
     end
-  end
-
-  defp generate_params(params) do
-    Enum.map(params, fn {name, _, _} ->
-      quote do
-        unquote(name)
-      end
-    end)
   end
 end
