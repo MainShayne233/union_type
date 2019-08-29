@@ -9,7 +9,6 @@ defmodule UnionType.MixProject do
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: "A library for defining and using union types",
-      licenses: ["MIT"],
       package: package()
     ]
   end
